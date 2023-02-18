@@ -6,8 +6,17 @@
         <WarnOn>3390;$(WarnOn)</WarnOn>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DefineConstants>TRACE
+</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
-        <Compile Include="Program.fs"/>
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Discord.Net" Version="3.9.0" />
     </ItemGroup>
 
 </Project>
