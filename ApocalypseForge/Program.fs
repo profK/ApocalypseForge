@@ -4,24 +4,26 @@ open System
 open System.Threading.Tasks
 open Discord
 open Discord.WebSocket
+open Elmish
 
-// Define a function to construct a message to print
-let from whom =
-    sprintf "from %s" whom
+type Model =
+    {
+        Value : int
+    }
+type Msg =
+    | Increment
+    | Decrement
 
 
+let LogFunc = System.Func<LogMessage,Task>( fun(message)->
+    async {
+        Console.WriteLine message.Message
+    }
+    |> Async.StartAsTask
+    :> Task )
+let token = Environment.GetEnvironmentVariable("TOKEN")
 
-let LogFunc = System.Func<LogMessage,Task>(
-     fun(message)->
-         async {
-             Console.WriteLine message.Message
-         }
-         |> Async.StartAsTask
-         :> Task
-)
-let token = Environment.GetEnvironmentVariable("TOKEN");
-[<EntryPoint>]    
-let main argv =
+let connectClient() =
     let client = new DiscordSocketClient()
     client.add_Log LogFunc
     
@@ -30,7 +32,38 @@ let main argv =
 
     // Block this task until the program is closed.
     Async.AwaitTask (Task.Delay(-1)) |> ignore
-    
-    while true do
-        ()
-    0 // return an integer exit code
+   
+let init () =
+    {
+        Value = 0
+    }
+    , Cmd.ofMsg Increment
+
+let update msg model =
+    match msg with
+    | Increment when model.Value < 2 ->
+        { model with
+            Value = model.Value + 1
+        }
+        , Cmd.ofMsg Increment
+    | Increment ->
+        { model with
+            Value = model.Value + 1
+        }
+        , Cmd.ofMsg Decrement
+    | Decrement when model.Value > 1 ->
+        { model with
+            Value = model.Value - 1
+        }
+        , Cmd.ofMsg Decrement
+    | Decrement ->
+        { model with
+            Value = model.Value - 1
+        }
+        , Cmd.ofMsg Increment
+   
+[<EntryPoint>]    
+let main argv =
+    connectClient()
+    Program.mkProgram init update (fun model _ -> printf "%A\n" model) |> Program.run
+    0
