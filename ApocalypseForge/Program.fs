@@ -15,6 +15,7 @@ type Msg =
     | Decrement
 
 
+
 let LogFunc = System.Func<LogMessage,Task>( fun(message)->
     async {
         Console.WriteLine message.Message
@@ -22,9 +23,8 @@ let LogFunc = System.Func<LogMessage,Task>( fun(message)->
     |> Async.StartAsTask
     :> Task )
 let token = Environment.GetEnvironmentVariable("TOKEN")
-
+let client = new DiscordSocketClient()
 let connectClient() =
-    let client = new DiscordSocketClient()
     client.add_Log LogFunc
     
     Async.AwaitTask (client.LoginAsync(TokenType.Bot, token)) |> ignore
@@ -37,7 +37,7 @@ let init () =
     {
         Value = 0
     }
-    , Cmd.ofMsg Increment
+    , []
 
 let update msg model =
     match msg with
@@ -45,25 +45,38 @@ let update msg model =
         { model with
             Value = model.Value + 1
         }
-        , Cmd.ofMsg Increment
+        , []
     | Increment ->
         { model with
             Value = model.Value + 1
         }
-        , Cmd.ofMsg Decrement
+        , []
     | Decrement when model.Value > 1 ->
         { model with
             Value = model.Value - 1
         }
-        , Cmd.ofMsg Decrement
+        , []
     | Decrement ->
         { model with
             Value = model.Value - 1
         }
-        , Cmd.ofMsg Increment
-   
+        , []
+        
+let discordStart initial =
+    let startfunc dispatch =
+        match client.ConnectionState with
+        | Disconnected -> connectClient()
+        dispatch(Increment)
+        { new IDisposable with
+                member _.Dispose() = printf "disposed" }
+    startfunc   
+let subscription model =        
+     [ ["increment"], discordStart  Increment]
+
 [<EntryPoint>]    
 let main argv =
-    connectClient()
-    Program.mkProgram init update (fun model _ -> printf "%A\n" model) |> Program.run
+    Program.mkProgram init update (fun model _ -> printf "%A\n" model)
+    |> Program.withSubscription subscription  
+    |> Program.run
+    while (true) do System.Threading.Thread.Sleep(1000);
     0
