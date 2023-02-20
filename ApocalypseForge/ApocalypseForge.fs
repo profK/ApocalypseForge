@@ -69,7 +69,7 @@ let do_roll pool =
         
     // return description string    
     $"""
-Rolling pool of %i{pool.d6}%+i{pool.plus}
+Rolling pool of %i{pool.d6}d6%+i{pool.plus}
 Rolls: %A{rolls}
 Kept: %A{kept}
 Total: %i{result}
@@ -123,26 +123,13 @@ let do_slash_command (cmd:SocketSlashCommand)  =
      
         
 let launch_do_slash_command (cmd: SocketSlashCommand) =
-    try
-        Console.WriteLine(DateTime.UtcNow)
-        Console.WriteLine(cmd.CreatedAt)
-        Console.WriteLine()
-        cmd.RespondAsync "foo"
-        |> Async.AwaitTask
-        Console.Write(cmd.HasResponded)
-        Task.CompletedTask
-    with
-    | ex ->
-        Console.WriteLine ex.Message
-        Task.CompletedTask
-        
-    (*cmd.DeferAsync()
+    cmd.DeferAsync()
     |> Async.AwaitTask |>ignore
     async {
         do_slash_command cmd
     }
     |>Async.Start
-    Task.CompletedTask*)
+    Task.CompletedTask
 
     
 let clientReadyCB() : Task =

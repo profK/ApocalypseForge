@@ -3,7 +3,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <WarnOn>3390;$(WarnOn)</WarnOn>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -13,6 +13,8 @@
 
     <ItemGroup>
         <Compile Include="ApocalypseForge.fs" />
+        <Content Include=".bashrc" />
+        <Content Include="start.sh" />
     </ItemGroup>
 
     <ItemGroup>
