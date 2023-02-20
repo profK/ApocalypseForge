@@ -114,9 +114,9 @@ let do_slash_command (cmd:SocketSlashCommand)  =
                  
                       
            | None ->
-               modifyResponse "AplocapyseForge Error: could not parse pool expression"              
+               modifyResponse "ApocalypseForge Error: could not parse pool expression"              
         | _ ->
-           modifyResponse "AplocapyseForge Error: Unrecognized command"
+           modifyResponse "ApocalypseForge Error: Unrecognized command"
     with
     | ex ->
         Console.WriteLine(ex.Message)
