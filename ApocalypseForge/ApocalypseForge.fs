@@ -58,7 +58,7 @@ let systemMailbox = MailboxProcessor.Start(fun inbox ->
 let do_roll pool =
     let numd6 = if pool.d6<2 then 3 else pool.d6
     let rolls =
-        infiniRand.GetValues(1,7) |> Seq.take 3 |> Seq.toArray   
+        infiniRand.GetValues(1,7) |> Seq.take numd6 |> Seq.toArray   
     let kept =
         if pool.d6<2 then
             rolls |> Array.sort |> Array.take 2 

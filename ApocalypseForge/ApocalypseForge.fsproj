@@ -14,7 +14,6 @@
     <ItemGroup>
         <Compile Include="ApocalypseForge.fs" />
         <Content Include=".bashrc" />
-        <Content Include="start.sh" />
     </ItemGroup>
 
     <ItemGroup>
