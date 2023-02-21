@@ -31,4 +31,23 @@
         <CriticalSucess>The target accepts the actor as a leader. The actor takes +1D6 to their next attempt to manipulate or convince the target and gains 1 bond with the target.
         </CriticalSucess>
     </Move>
+    <Move Name="Athletic Feat" Statistic="Ahletics">
+        <Description>When you make an athletic feat move, you roll athletics (duh)</Description>
+        <CriticalFailure>Actor takes a light harm.</CriticalFailure>
+        <Failure>Actor takes 2 stress. Mark a tic on Talents</Failure>
+        <PartialSuccess>
+            <Decription>Actor succeeds in their action but must also choose one of 
+                the following:</Decription>
+            <Options>
+                <Option>Less than ideal. Actor takes 2 stress</Option>
+                <Option>Almost but not quite. No stress but then actor 
+                    fails in their action</Option>
+            </Options>
+        </PartialSuccess>
+        <Success>Actor succeeds (this may just mean one tick on a clock)
+        </Success>
+        <CriticalSucess>
+            Actor easily succeeds. The Director choose one of the following:
+        </CriticalSucess>
+    </Move>
 </Moves>
