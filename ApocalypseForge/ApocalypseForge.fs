@@ -6,8 +6,6 @@ open System
 open System.Text.RegularExpressions
 open System.Threading.Tasks
 open Discord
-open Discord.WebSocket
-open Elmish
 open System.Linq
 type DicePool =
     {
@@ -24,20 +22,20 @@ type Msg =
     | Disconnected
     | Roll of DicePool
 
-type System.Random with
-    /// Generates an infinite sequence of random numbers within the given range.
+type Random with
+    // Generates an infinite sequence of random numbers within the given range.
     member this.GetValues(minValue, maxValue) =
         Seq.initInfinite (fun _ -> this.Next(minValue, maxValue))
         
-let infiniRand = new Random()
+let infiniRand = Random()
 
 // Discord interface
-let LogFunc = System.Func<LogMessage,Task>( fun(message)->
+let LogFunc (logMessage:LogMessage) : Task= 
     async {
-        Console.WriteLine message.Message
+        Console.WriteLine logMessage.Message
     }
     |> Async.StartAsTask
-    :> Task )
+    :> Task 
 let token = Environment.GetEnvironmentVariable("TOKEN")
 
 let client = new DiscordSocketClient()
@@ -48,7 +46,7 @@ let systemMailbox = MailboxProcessor.Start(fun inbox ->
             let! msg = inbox.Receive()
 
             // process a message
-            printfn "message is: %s" msg
+            printfn $"message is: %s{msg}"
 
             // loop to top
             return! messageLoop()
@@ -165,7 +163,7 @@ let connectClient () =
 let main argv =
     connectClient()
     let waitHandles:WaitHandle array  = [|new AutoResetEvent(false)|]
-    let waitAny = WaitHandle.WaitAny(waitHandles)
+    WaitHandle.WaitAny(waitHandles) |> ignore
     0
    
 
