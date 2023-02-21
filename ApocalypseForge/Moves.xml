@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Moves xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="file:/D:/projects/RiderProjects/ApocalypseForge/ApocalypseForge/Moves.xsd">
+    <Move Name="Act With Confidence" Statistic="Confidence">
+        <Description>When you attempt to act with confidence, roll confidence</Description>
+        <CriticalFailure>Not only does the actor fail to impress the target of their 
+            point of view, but the target thinks they are a phony. The actor has -1D6 to 
+            any attempts to convince or manipulate the target of anything until they end 
+            of the episode</CriticalFailure>
+        <Failure>The actor totally fails to impress the tagret. Mark an exp on Skills
+        </Failure>
+        <PartialSuccess>
+            <Decription>The actor has a limited success. The target is swayed by the 
+                actor's confidence and the actor the actor takes +1D6 to their next 
+                attempt to manipulate or convince the target. However the target may 
+                chose one of the following:</Decription>
+            <Options>
+                <Option>Still uncertain. The actor must add to their argument but 
+                    take +1D6 to all further attempts to convince the target of this 
+                    one thing.</Option>
+                <Option>The target thinks the actor is fill of themselves. The actor's 
+                    +1D6 is nullified and the target takes 2 points of stress from social 
+                    consequences.</Option>
+                <Option>The target will go along with the target, but they expect a favor 
+                    down the line. The target gets 1 bond with you</Option>
+            </Options>
+        </PartialSuccess>
+        <Success> The actor impresses the target with their confidence. The actor takes +1D6 
+            to their next attempt to manipulate or convince the target.
+            </Success>
+        <CriticalSucess>The target accepts the actor as a leader. The actor takes +1D6 to their next attempt to manipulate or convince the target and gains 1 bond with the target.
+        </CriticalSucess>
+    </Move>
+</Moves>
