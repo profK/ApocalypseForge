@@ -7,24 +7,11 @@
                 <xs:element name="Move">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="Description">
-                                <xs:complexType>
-                                    <xs:all maxOccurs="1">
-                                        <xs:element name="Decription"/>
-                                        <xs:element name="Options">
-                                            <xs:complexType>
-                                                <xs:sequence maxOccurs="unbounded" minOccurs="0">
-                                                  <xs:element name="Option"/>
-                                                </xs:sequence>
-                                            </xs:complexType>
-                                        </xs:element>
-                                    </xs:all>
-                                </xs:complexType>
-                            </xs:element>
+                            <xs:element name="Description"> </xs:element>
                             <xs:element name="CriticalFailure">
                                 <xs:complexType>
-                                    <xs:all maxOccurs="1">
-                                        <xs:element name="Decription"/>
+                                    <xs:sequence maxOccurs="1">
+                                        <xs:element name="Description"/>
                                         <xs:element name="Options">
                                             <xs:complexType>
                                                 <xs:sequence maxOccurs="unbounded" minOccurs="0">
@@ -32,13 +19,13 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
-                                    </xs:all>
+                                    </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="Failure">
                                 <xs:complexType>
                                     <xs:all maxOccurs="1">
-                                        <xs:element name="Decription"/>
+                                        <xs:element name="Description"/>
                                         <xs:element name="Options">
                                             <xs:complexType>
                                                 <xs:sequence maxOccurs="unbounded" minOccurs="0">
@@ -52,7 +39,7 @@
                             <xs:element name="PartialSuccess">
                                 <xs:complexType>
                                     <xs:all maxOccurs="1">
-                                        <xs:element name="Decription"/>
+                                        <xs:element name="Description"/>
                                         <xs:element name="Options">
                                             <xs:complexType>
                                                 <xs:sequence maxOccurs="unbounded" minOccurs="0">
@@ -63,10 +50,10 @@
                                     </xs:all>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element name="Success">
+                            <xs:element name="FullSuccess">
                                 <xs:complexType>
                                     <xs:all maxOccurs="1">
-                                        <xs:element name="Decription"/>
+                                        <xs:element name="Description"/>
                                         <xs:element name="Options">
                                             <xs:complexType>
                                                 <xs:sequence maxOccurs="unbounded" minOccurs="0">
@@ -77,10 +64,10 @@
                                     </xs:all>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element name="CriticalSucess">
+                            <xs:element name="CriticalSuccess">
                                 <xs:complexType>
                                     <xs:all maxOccurs="1">
-                                        <xs:element name="Decription"/>
+                                        <xs:element name="Description"/>
                                         <xs:element name="Options">
                                             <xs:complexType>
                                                 <xs:sequence maxOccurs="unbounded" minOccurs="0">
