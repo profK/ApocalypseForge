@@ -12,15 +12,20 @@ type DicePool =
         d6:int
         plus:int
     }
-type Model =
-    {
-        LastRoll : int
-    }
+type RollResult =
+    | CriticalFailure
+    | Failure 
+    | PartialSuccess
+    | Success
+    | CriticalSuccess
+    
 type Msg =
     | Connect
     | Connected
     | Disconnected
     | Roll of DicePool
+    
+    
 
 type Random with
     // Generates an infinite sequence of random numbers within the given range.
@@ -65,14 +70,36 @@ let do_roll pool =
     let result =
         kept |> Seq.sum |> fun tot -> tot + pool.plus
         
-    // return description string    
+   (* // return description string    
     $"""
 Rolling pool of %i{pool.d6}d6%+i{pool.plus}
 Rolls: %A{rolls}
 Kept: %A{kept}
 Total: %i{result}
-"""
-
+"""*)
+    let resultName =
+         if (kept[0]=6)&&(kept[1]=6) then
+            CriticalSuccess
+         else if (kept[0]=1)&&(kept[1]=1) then
+             CriticalFailure
+         else match result with
+            | n when  n<7 -> Failure
+            | n when n>6 && n<10 -> PartialSuccess
+            | n when n>9 -> Success
+    let resultColor =
+        match resultName with
+        | CriticalFailure -> Color.Red
+        | Failure ->Color.DarkRed
+        | PartialSuccess -> Color.DarkGreen
+        | Success -> Color.Green
+        | CriticalSuccess -> Color.Gold
+                    
+    EmbedBuilder(Title=string(resultName),
+                   Description = $"Rolled pool of %i{pool.d6}d6%+i{pool.plus}")
+        .WithColor(resultColor)
+        .AddField("Rolls", $"%A{rolls}")
+        .AddField("Kept",$"%A{kept}")
+        .AddField("Result",result).Build()
 let poolParser = Regex("(\d+)d6([+,-]\d+)?",RegexOptions.Compiled)  
 let parse_pool instr:DicePool option =
    let matches:Match = poolParser.Match(instr)
@@ -81,7 +108,7 @@ let parse_pool instr:DicePool option =
    | true ->
        let groups = matches.Groups
        let poolDice = int(groups[1].Value)
-       match groups[1].Success with
+       match groups[2].Success with
        | false ->
            Some({
             d6=poolDice
@@ -97,24 +124,27 @@ let parse_pool instr:DicePool option =
       
 let do_slash_command (cmd:SocketSlashCommand)  =
     try
-        let modifyResponse outstr =
+        let modifyResponseEmbed embed  =
              cmd.ModifyOriginalResponseAsync(fun props ->
-                           props.Content<-Optional(outstr)
+                           props.Embed<-Optional(embed)
              ) |> Async.AwaitTask |> ignore
-       
+             
+        let modifyResponseMessage msg  =
+             cmd.ModifyOriginalResponseAsync(fun props ->
+                           props.Content<-Optional(msg)
+             ) |> Async.AwaitTask |> ignore
+             
         match cmd.Data.Name with
         |  "pool" ->
            match parse_pool(string(cmd.Data.Options.ElementAt(0).Value)) with
            | Some dicePool ->
                    dicePool
                    |>do_roll
-                   |> modifyResponse
-                 
-                      
+                   |> modifyResponseEmbed     
            | None ->
-               modifyResponse "ApocalypseForge Error: could not parse pool expression"              
+               modifyResponseMessage "ApocalypseForge Error: could not parse pool expression"              
         | _ ->
-           modifyResponse "ApocalypseForge Error: Unrecognized command"
+           modifyResponseMessage "ApocalypseForge Error: Unrecognized command"
     with
     | ex ->
         Console.WriteLine(ex.Message)
