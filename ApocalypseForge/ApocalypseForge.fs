@@ -7,6 +7,7 @@ open System.Text.RegularExpressions
 open System.Threading.Tasks
 open Discord
 open System.Linq
+open FSharp.Data
 type DicePool =
     {
         d6:int
@@ -25,6 +26,7 @@ type Msg =
     | Disconnected
     | Roll of DicePool
     
+
     
 
 type Random with
