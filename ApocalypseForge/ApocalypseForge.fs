@@ -60,6 +60,10 @@ let systemMailbox = MailboxProcessor.Start(fun inbox ->
         }
         messageLoop()
     )
+
+let arrayToCSV numarray =
+        let str = $"%A{numarray}"
+        str.Substring(2,str.Length-4).Replace(";",",")
 let do_roll pool =
     let numd6 = if pool.d6<2 then 3 else pool.d6
     let rolls =
@@ -71,14 +75,6 @@ let do_roll pool =
             rolls |> Array.sortDescending |> Array.take 2
     let result =
         kept |> Seq.sum |> fun tot -> tot + pool.plus
-        
-   (* // return description string    
-    $"""
-Rolling pool of %i{pool.d6}d6%+i{pool.plus}
-Rolls: %A{rolls}
-Kept: %A{kept}
-Total: %i{result}
-"""*)
     let resultName =
          if (kept[0]=6)&&(kept[1]=6) then
             CriticalSuccess
@@ -95,12 +91,14 @@ Total: %i{result}
         | PartialSuccess -> Color.DarkGreen
         | Success -> Color.Green
         | CriticalSuccess -> Color.Gold
+        
+    
                     
     EmbedBuilder(Title=string(resultName),
                    Description = $"Rolled pool of %i{pool.d6}d6%+i{pool.plus}")
         .WithColor(resultColor)
-        .AddField("Rolls", $"%A{rolls}")
-        .AddField("Kept",$"%A{kept}")
+        .AddField("Rolls", arrayToCSV(rolls))
+        .AddField("Kept", arrayToCSV(kept))
         .AddField("Result",result).Build()
 let poolParser = Regex("(\d+)d6([+,-]\d+)?",RegexOptions.Compiled)  
 let parse_pool instr:DicePool option =
