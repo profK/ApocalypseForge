@@ -123,8 +123,20 @@ let parse_pool instr:DicePool option =
             d6=poolDice
             plus=plus
            })
-  
-      
+
+let move_msg_components = 
+    let moveMenu = 
+        SelectMenuBuilder().
+            WithPlaceholder("Select an option").
+            WithCustomId("move_menu")
+    Moves.moveNames
+    |> Seq.iter(fun move_name -> 
+        moveMenu.AddOption(move_name,move_name.Replace(" ","_"))|>ignore)
+    ComponentBuilder().
+        WithSelectMenu(moveMenu).Build()
+ 
+let test_button =
+    ComponentBuilder().WithButton("foo","fooid").Build()
 let do_slash_command (cmd:SocketSlashCommand)  =
     try
         let modifyResponseEmbed embed  =
@@ -132,9 +144,13 @@ let do_slash_command (cmd:SocketSlashCommand)  =
                            props.Embed<-Optional(embed)
              ) |> Async.AwaitTask |> ignore
              
-        let modifyResponseMessage msg  =
+        let modifyResponseMessage msg components  =     
              cmd.ModifyOriginalResponseAsync(fun props ->
                            props.Content<-Optional(msg)
+                           match components with
+                           Some comp ->
+                                props.Components<- Optional(comp)
+                           | None -> ()
              ) |> Async.AwaitTask |> ignore
              
         match cmd.Data.Name with
@@ -145,9 +161,12 @@ let do_slash_command (cmd:SocketSlashCommand)  =
                    |>do_roll
                    |> modifyResponseEmbed     
            | None ->
-               modifyResponseMessage "ApocalypseForge Error: could not parse pool expression"              
+               modifyResponseMessage "ApocalypseForge Error: could not parse pool expression" None
+        | "move" ->
+            let components = move_msg_components
+            modifyResponseMessage "Roll a move" (Some components ) 
         | _ ->
-           modifyResponseMessage "ApocalypseForge Error: Unrecognized command"
+           modifyResponseMessage "ApocalypseForge Error: Unrecognized command" None
     with
     | ex ->
         Console.WriteLine(ex.Message)
