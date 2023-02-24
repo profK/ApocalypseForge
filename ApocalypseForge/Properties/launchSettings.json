@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ApocalypseForge": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "TOKEN": "MTA3ODA3MjA0MzQyNzM0ODY0MA.GHv94j.gAksenY8_Pg7FDthUdS_iZxz_GNRZmlrMi0ijw"
+      }
+    }
+  }
+}

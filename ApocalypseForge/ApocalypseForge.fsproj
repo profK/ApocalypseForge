@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <WarnOn>3390;$(WarnOn)</WarnOn>
+        <TargetFrameworks>net5.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DefineConstants>TRACE
+</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Moves.fs" />
+        <Compile Include="ApocalypseForge.fs" />
+        <Content Include=".bashrc" />
+        <Content Include="Moves.xsd" />
+        <Content Include="moves.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Discord.Net" Version="3.9.0" />
+      <PackageReference Include="FSharp.Data" Version="6.0.1-beta002" />
+      <PackageReference Include="System.Xml.Linq" Version="3.5.21022.801" />
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="copy Moves.xsd bin\Debug\net5.0\Moves.xsd&#xA;copy Moves.xml bin\Debug\net5.0\Moves.xml" />
+    </Target>
+
+</Project>
