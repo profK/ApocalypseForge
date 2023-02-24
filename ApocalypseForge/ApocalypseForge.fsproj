@@ -3,7 +3,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <WarnOn>3390;$(WarnOn)</WarnOn>
-        <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+        <TargetFrameworks>net5.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -16,6 +16,7 @@
         <Compile Include="ApocalypseForge.fs" />
         <Content Include=".bashrc" />
         <Content Include="Moves.xsd" />
+        <Content Include="moves.xml" />
     </ItemGroup>
 
     <ItemGroup>

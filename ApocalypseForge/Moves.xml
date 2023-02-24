@@ -409,7 +409,7 @@
       </Options>
     </CriticalSuccess>
   </Move>
-  <Move Name="Inspire" Statistic="athletics">
+  <Move Name="Intimidate" Statistic="athletics">
     <Description>
     *When you try to physically intimidate someone, you roll** ***athletics*****.*
     </Description>
