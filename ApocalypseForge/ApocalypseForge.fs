@@ -36,6 +36,9 @@ type Random with
         
 let infiniRand = Random()
 
+type MovesProvider = XmlProvider<Schema="Moves.xsd">
+let moves = MovesProvider.Load("Moves.xml")
+
 // Discord interface
 let LogFunc (logMessage:LogMessage) : Task= 
     async {
