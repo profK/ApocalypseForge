@@ -12,6 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Moves.fs" />
         <Compile Include="ApocalypseForge.fs" />
         <Content Include=".bashrc" />
         <Content Include="Moves.xsd" />

@@ -162,23 +162,39 @@ let launch_do_slash_command (cmd: SocketSlashCommand) =
     |>Async.Start
     Task.CompletedTask
 
+let add_slash_command cmdstr descr cmdoptions = 
+    try
+        let slashCmdBldr=
+            SlashCommandBuilder().WithName(cmdstr).
+                WithDescription(descr)
+        match cmdoptions with
+        | Some opts ->
+            opts
+            |>Seq.iter(fun opt -> slashCmdBldr.AddOption(opt)|>ignore )
+            |> ignore
+        | None -> ()
+        client.CreateGlobalApplicationCommandAsync(slashCmdBldr.Build())
+        |> Async.AwaitTask |> ignore
+        Task.CompletedTask
+    with 
+    | ex ->
+        Console.WriteLine(ex.Message)
+        Console.WriteLine(ex.StackTrace)
+        Task.CompletedTask
+
     
 let clientReadyCB() : Task =
     client.add_SlashCommandExecuted(launch_do_slash_command)
-    let poolOpts =
-        SlashCommandOptionBuilder().
-            WithName("pooldesc").
-            WithType(ApplicationCommandOptionType.String).
-            WithDescription("The pool dice to roll").
-            WithRequired(true)
-    SlashCommandBuilder().
-        WithName("pool").
-        WithDescription("roll a dice pool specified as nd6+/-m").
-        AddOption(poolOpts).
-        Build() 
-    |> client.CreateGlobalApplicationCommandAsync
-    :> Task
-    
+    SlashCommandOptionBuilder().
+        WithName("dice_expression").
+        WithType(ApplicationCommandOptionType.String).
+        WithDescription("The pool dice to roll").
+        WithRequired(true)
+    |> fun cmd -> cmd::list.Empty
+    |> Some
+    |> add_slash_command "pool" "Roll a dice pool" |> ignore
+    add_slash_command "move" "Roll a move" None
+
 let connectedCB() : Task =
    // Console.WriteLine("Connected")
     Task.CompletedTask
