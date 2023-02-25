@@ -21,6 +21,19 @@ type RollResult =
     | Success
     | CriticalSuccess
     
+type ProcessedRoll =
+    struct
+        val pool:DicePool
+        val resultName:RollResult
+        val resultColor:Color
+        val rolls: int array
+        val kept:int array
+        val result:int
+        new (Pool,ResultName,ResultColor,Rolls,Kept,Result) =
+            {pool=Pool;resultName=ResultName;resultColor=ResultColor
+             rolls=Rolls;kept=Kept;result=Result}
+    end
+    
 type Msg =
     | Connect
     | Connected
@@ -70,7 +83,8 @@ let arrayToCSV numarray =
         let str = $"%A{numarray}"
         str.Substring(2,str.Length-4).Replace(";",",")
         
-let do_roll pool embedFunc =
+let do_roll pool  =
+    
     let numd6 = if pool.d6<2 then 3 else pool.d6
     let rolls =
         infiniRand.GetValues(1,7) |> Seq.take numd6 |> Seq.toArray   
@@ -97,17 +111,42 @@ let do_roll pool embedFunc =
         | PartialSuccess -> Color.DarkGreen
         | Success -> Color.Green
         | CriticalSuccess -> Color.Gold
-    embedFunc pool resultName resultColor rolls kept result
-    
-let do_pool_embed_func pool resultName resultColor rolls kept result =
-     EmbedBuilder(Title=string(resultName),
-                   Description = $"Rolled pool of %i{pool.d6}d6%+i{pool.plus}")
-        .WithColor(resultColor)
-        .AddField("Rolls", arrayToCSV(rolls))
-        .AddField("Kept", arrayToCSV(kept))
-        .AddField("Result",result).Build()
-let do_pool pool =
-    do_roll pool do_pool_embed_func
+    ProcessedRoll(pool,resultName,resultColor,rolls,kept,result)
+
+
+let do_pool_embed_func (rollResult:ProcessedRoll) =
+     EmbedBuilder()
+        .WithTitle("Roll Pool")
+        .WithDescription("Roll a dice pool")
+        .WithColor(rollResult.resultColor)
+        .AddField("Rolls", arrayToCSV(rollResult.rolls))
+        .AddField("Kept", arrayToCSV(rollResult.kept))
+        .AddField("Result",rollResult.result).Build()
+        
+let do_move_embed_func (themove:MovesProvider.Move) (rollResult:ProcessedRoll) =
+     EmbedBuilder()
+        .WithTitle(themove.Name)
+        .WithDescription(themove.Description.XElement.Value)
+        .WithColor(rollResult.resultColor)
+        .AddField("Rolls", arrayToCSV(rollResult.rolls))
+        .AddField("Kept", arrayToCSV(rollResult.kept))
+        .AddField("Result",rollResult.result)
+        .AddField("Result Description:",
+                  match rollResult.resultName with
+                  | RollResult.CriticalFailure ->
+                      themove.CriticalFailure.XElement.Value
+                  | RollResult.Failure ->
+                      themove.Failure.XElement.Value
+                  | RollResult.PartialSuccess ->
+                      themove.PartialSuccess.XElement.Value
+                  | RollResult.Success ->
+                      themove.FullSuccess.XElement.Value
+                  | RollResult.CriticalSuccess ->
+                      themove.CriticalSuccess.XElement.Value
+                  )
+        .Build()        
+        
+
 let poolParser = Regex("(\d+)d6([+,-]\d+)?",RegexOptions.Compiled)  
 let parse_pool instr:DicePool option =
    let matches:Match = poolParser.Match(instr)
@@ -156,7 +195,8 @@ let do_slash_command (cmd:SocketSlashCommand)  =
            match parse_pool(string(cmd.Data.Options.ElementAt(0).Value)) with
            | Some dicePool ->
                    dicePool
-                   |>do_pool
+                   |>do_roll
+                   |> do_pool_embed_func
                    |> modifyResponseEmbed     
            | None ->
                modifyResponseMessage None "ApocalypseForge Error: could not parse pool expression" 
@@ -168,10 +208,12 @@ let do_slash_command (cmd:SocketSlashCommand)  =
            match parse_pool(string(cmd.Data.Options.ElementAt(1).Value)) with
            | Some dicePool ->
                match find_move(string(cmd.Data.Options.ElementAt(1).Value)) with
-               |Some move ->
-                   //do_move move dicePool
-                   //|> modifyResponseEmbed
-                    ()
+               |Some themove ->
+                   dicePool
+                   |> do_roll
+                   |> do_move_embed_func themove
+                   |> modifyResponseEmbed
+                   ()
                | None ->
                     modifyResponseMessage None ("ApocalypseForge Error: could not match move: "+
                                                 string(cmd.Data.Options.ElementAt(0).Value)) 
