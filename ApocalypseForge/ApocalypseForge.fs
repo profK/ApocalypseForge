@@ -125,7 +125,7 @@ let do_pool_embed_func (rollResult:ProcessedRoll) =
         
 let do_move_embed_func (themove:MovesProvider.Move) (rollResult:ProcessedRoll) =
      EmbedBuilder()
-        .WithTitle(themove.Name)
+        .WithTitle(themove.Name+" "+rollResult.resultName.ToString())
         .WithDescription(themove.Description.XElement.Value)
         .WithColor(rollResult.resultColor)
         .AddField("Rolls", arrayToCSV(rollResult.rolls))
@@ -207,7 +207,7 @@ let do_slash_command (cmd:SocketSlashCommand)  =
         | "move" ->
            match parse_pool(string(cmd.Data.Options.ElementAt(1).Value)) with
            | Some dicePool ->
-               match find_move(string(cmd.Data.Options.ElementAt(1).Value)) with
+               match find_move(string(cmd.Data.Options.ElementAt(0).Value)) with
                |Some themove ->
                    dicePool
                    |> do_roll
