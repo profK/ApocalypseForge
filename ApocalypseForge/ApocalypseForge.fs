@@ -8,6 +8,7 @@ open System.Threading.Tasks
 open Discord
 open System.Linq
 open FSharp.Data
+
 type DicePool =
     {
         d6:int
@@ -37,7 +38,7 @@ type Random with
 let infiniRand = Random()
 
 type MovesProvider = XmlProvider<Schema="Moves.xsd">
-let moves = MovesProvider.Load("Moves.xml")
+let moves = MovesProvider.Load("Moves.xml").Moves
 
 // Discord interface
 let LogFunc (logMessage:LogMessage) : Task= 
@@ -49,6 +50,7 @@ let LogFunc (logMessage:LogMessage) : Task=
 let token = Environment.GetEnvironmentVariable("TOKEN")
 
 let client = new DiscordSocketClient()
+
 let systemMailbox = MailboxProcessor.Start(fun inbox ->
         let rec messageLoop() = async {
 
@@ -67,7 +69,8 @@ let systemMailbox = MailboxProcessor.Start(fun inbox ->
 let arrayToCSV numarray =
         let str = $"%A{numarray}"
         str.Substring(2,str.Length-4).Replace(";",",")
-let do_roll pool =
+        
+let do_roll pool embedFunc =
     let numd6 = if pool.d6<2 then 3 else pool.d6
     let rolls =
         infiniRand.GetValues(1,7) |> Seq.take numd6 |> Seq.toArray   
@@ -94,15 +97,17 @@ let do_roll pool =
         | PartialSuccess -> Color.DarkGreen
         | Success -> Color.Green
         | CriticalSuccess -> Color.Gold
-        
+    embedFunc pool resultName resultColor rolls kept result
     
-                    
-    EmbedBuilder(Title=string(resultName),
+let do_pool_embed_func pool resultName resultColor rolls kept result =
+     EmbedBuilder(Title=string(resultName),
                    Description = $"Rolled pool of %i{pool.d6}d6%+i{pool.plus}")
         .WithColor(resultColor)
         .AddField("Rolls", arrayToCSV(rolls))
         .AddField("Kept", arrayToCSV(kept))
         .AddField("Result",result).Build()
+let do_pool pool =
+    do_roll pool do_pool_embed_func
 let poolParser = Regex("(\d+)d6([+,-]\d+)?",RegexOptions.Compiled)  
 let parse_pool instr:DicePool option =
    let matches:Match = poolParser.Match(instr)
@@ -124,17 +129,10 @@ let parse_pool instr:DicePool option =
             plus=plus
            })
 
-let move_msg_components = 
-    let moveMenu = 
-        SelectMenuBuilder().
-            WithPlaceholder("Select an option").
-            WithCustomId("move_menu")
-    Moves.moveNames
-    |> Seq.iter(fun move_name -> 
-        moveMenu.AddOption(move_name,move_name.Replace(" ","_"))|>ignore)
-    ComponentBuilder().
-        WithSelectMenu(moveMenu).Build()
- 
+let find_move (inp:string) =
+    moves
+    |> Seq.tryFind(fun move -> move.Name.ToLower().StartsWith(inp.ToLower()))
+    
 let test_button =
     ComponentBuilder().WithButton("foo","fooid").Build()
 let do_slash_command (cmd:SocketSlashCommand)  =
@@ -144,7 +142,7 @@ let do_slash_command (cmd:SocketSlashCommand)  =
                            props.Embed<-Optional(embed)
              ) |> Async.AwaitTask |> ignore
              
-        let modifyResponseMessage msg components  =     
+        let modifyResponseMessage components msg =     
              cmd.ModifyOriginalResponseAsync(fun props ->
                            props.Content<-Optional(msg)
                            match components with
@@ -158,15 +156,29 @@ let do_slash_command (cmd:SocketSlashCommand)  =
            match parse_pool(string(cmd.Data.Options.ElementAt(0).Value)) with
            | Some dicePool ->
                    dicePool
-                   |>do_roll
+                   |>do_pool
                    |> modifyResponseEmbed     
            | None ->
-               modifyResponseMessage "ApocalypseForge Error: could not parse pool expression" None
+               modifyResponseMessage None "ApocalypseForge Error: could not parse pool expression" 
+        | "moves" ->
+             moves
+             |> Seq.fold (fun str move -> str+(move.Name.ToLower())+"\n") ""
+             |> modifyResponseMessage None
         | "move" ->
-            let components = move_msg_components
-            modifyResponseMessage "Roll a move" (Some components ) 
+           match parse_pool(string(cmd.Data.Options.ElementAt(1).Value)) with
+           | Some dicePool ->
+               match find_move(string(cmd.Data.Options.ElementAt(1).Value)) with
+               |Some move ->
+                   //do_move move dicePool
+                   //|> modifyResponseEmbed
+                    ()
+               | None ->
+                    modifyResponseMessage None ("ApocalypseForge Error: could not match move: "+
+                                                string(cmd.Data.Options.ElementAt(0).Value)) 
+           | None ->
+               modifyResponseMessage None "ApocalypseForge Error: could not parse pool expression" 
         | _ ->
-           modifyResponseMessage "ApocalypseForge Error: Unrecognized command" None
+           modifyResponseMessage None "ApocalypseForge Error: Unrecognized command" 
     with
     | ex ->
         Console.WriteLine(ex.Message)
@@ -201,19 +213,32 @@ let add_slash_command cmdstr descr cmdoptions =
         Console.WriteLine(ex.StackTrace)
         Task.CompletedTask
 
+let make_string_option_list  optionTuples =
+    optionTuples
+    |> Seq.map(fun otuple ->
+        SlashCommandOptionBuilder().
+            WithName(fst otuple).
+            WithType(ApplicationCommandOptionType.String).
+            WithDescription(snd otuple).
+            WithRequired(true))
     
 let clientReadyCB() : Task =
     client.add_SlashCommandExecuted(launch_do_slash_command)
-    SlashCommandOptionBuilder().
-        WithName("dice_expression").
-        WithType(ApplicationCommandOptionType.String).
-        WithDescription("The pool dice to roll").
-        WithRequired(true)
-    |> fun cmd -> cmd::list.Empty
-    |> Some
-    |> add_slash_command "pool" "Roll a dice pool" |> ignore
-    add_slash_command "move" "Roll a move" None
-
+    add_slash_command "pool" "Roll a dice pool"
+        (Some (make_string_option_list
+                   [|
+                       ("dice_expression","The pool in the form Nd6+M")
+                   |])) 
+    |> Async.AwaitTask |> ignore
+    add_slash_command "moves" "List all the moves" None
+    |> Async.AwaitTask |> ignore
+    add_slash_command "move" "Make a move"
+        (Some (make_string_option_list
+                   [|
+                       ("move_name","The name of the move")
+                       ("dice_expression","The pool in the form Nd6+M")
+                   |])) 
+    
 let connectedCB() : Task =
    // Console.WriteLine("Connected")
     Task.CompletedTask
