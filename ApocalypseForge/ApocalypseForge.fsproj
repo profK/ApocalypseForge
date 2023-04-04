@@ -17,6 +17,7 @@
         <Content Include=".bashrc" />
         <Content Include="Moves.xsd" />
         <Content Include="moves.xml" />
+        <Compile Include="ApocalypseForge2.fs" />
     </ItemGroup>
 
     <ItemGroup>

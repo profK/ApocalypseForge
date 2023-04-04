@@ -97,7 +97,7 @@ let do_roll pool =
         
     
                     
-    EmbedBuilder(Title=string(resultName),
+    DiscordEmbedBuilder(Title=string(resultName),
                    Description = $"Rolled pool of %i{pool.d6}d6%+i{pool.plus}")
         .WithColor(resultColor)
         .AddField("Rolls", arrayToCSV(rolls))
